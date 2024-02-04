@@ -194,5 +194,5 @@ app.use('/sweets', express.static('sweets'));
 // app.use('/downloads', express.static(path.join(__dirname, 'downloads')));
 
 app.listen(port, () => {
-    console.log(`Server is running`);
+    console.log(`Server is running on port : ${port}`);
 });
