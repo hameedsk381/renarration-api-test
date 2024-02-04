@@ -14,6 +14,18 @@ app.use(cors()); // Allow CORS to all
 app.use(bodyParser.json()); // Support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // Support encoded bodies
 app.use(express.json());
+const pool = require('./db');
+
+app.get('/api/renarrations', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM renarrations');
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
 const upload = multer({ dest: 'sweets/' });
 const Datastore = require('nedb');
 
@@ -182,5 +194,5 @@ app.use('/sweets', express.static('sweets'));
 // app.use('/downloads', express.static(path.join(__dirname, 'downloads')));
 
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running`);
 });

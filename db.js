@@ -1,9 +1,11 @@
-import { JSONFilePreset } from 'lowdb/node'
+const { Pool } = require('pg');
 
-const defaultData = { renarrations: [] }
-const db = await JSONFilePreset('db.json', defaultData)
+const pool = new Pool({
+  user: 'your_username',
+  host: 'localhost',
+  database: 'your_database_name',
+  password: 'your_password',
+  port: 5432,
+});
 
-// Read from the JSON file or initialize it
-await db.read();
-db.data ||= defaultData;
-await db.write();
+module.exports = pool;
