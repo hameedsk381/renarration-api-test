@@ -7,7 +7,7 @@ const cors = require('cors');
 const juice = require('juice');
 const multer = require('multer');
 const app = express();
-const port = 2000; // You can choose any port
+const port = 3000; // You can choose any port
 
 
 app.use(cors()); // Allow CORS to all
@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({ extended: true })); // Support encoded bodies
 app.use(express.json());
 const pool = require('./db');
 
-const upload = multer({ dest: 'sweets/' });
+const upload = multer({limits:{fileSize:200*1024*1024}, dest: 'sweets/' });
 const Datastore = require('nedb');
 
 const renarrationsDb = new Datastore({ filename: './sweets.db', autoload: true });
