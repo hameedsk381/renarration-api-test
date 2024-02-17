@@ -16,7 +16,21 @@ app.use(bodyParser.urlencoded({ extended: true })); // Support encoded bodies
 app.use(express.json());
 const pool = require('./db');
 
-const upload = multer({limits:{fileSize:200*1024*1024}, dest: 'sweets/' });
+// Define the destination paths for uploads and sweets
+const uploadDestination = 'uploads/';
+const sweetsDestination = 'sweets/';
+
+// Configure Multer for uploads
+const upload = multer({ 
+    limits: { fileSize: 200 * 1024 * 1024 }, 
+    dest: uploadDestination 
+});
+
+// Configure Multer for sweets
+const sweetsUpload = multer({ 
+    limits: { fileSize: 200 * 1024 * 1024 }, 
+    dest: sweetsDestination 
+});
 const Datastore = require('nedb');
 
 const renarrationsDb = new Datastore({ filename: './sweets.db', autoload: true });
@@ -49,7 +63,24 @@ const deleteRenarration = (id, callback) => {
 const getRenarrationById = (id, callback) => {
     renarrationsDb.findOne({ _id: id }, callback);
 };
-app.post('/create-renarration', upload.any(), (req, res) => {
+// Route for multiple file upload
+app.post('/upload', (req, res) => {
+    upload.single('file')(req, res, (err) => {
+        if (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Error uploading file' });
+        } else {
+            if (!req.file) {
+                res.status(400).json({ message: 'No file uploaded' });
+            } else {
+                const filePath = req.file.path;
+                res.status(200).json(filePath);
+            }
+        }
+    });
+});
+
+app.post('/create-renarration', sweetsUpload.any(), (req, res) => {
     try {
         let renarration = req.body  // Assuming renarration data (except media) is sent as a JSON string
         renarration.blocks.forEach((block, index) => {
@@ -102,7 +133,7 @@ app.get('/renarrations', (req, res) => {
   });
 });
 
-app.put('/renarrations/:id', upload.any(), (req, res) => {
+app.put('/renarrations/:id', sweetsUpload.any(), (req, res) => {
   try {
       const id = req.params.id;
       let renarration = req.body  // Assuming renarration data (except media) is sent as a JSON string
@@ -208,6 +239,7 @@ app.post('/download', async (req, res) => {
 
 // // Serve static files from the 'downloads' directory
 app.use('/sweets', express.static('sweets'));
+app.use('/uploads', express.static('uploads'));
 
 // app.use('/downloads', express.static(path.join(__dirname, 'downloads')));
 
