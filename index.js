@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const juice = require('juice');
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2; // Added Cloudinary
 const app = express();
 require('dotenv').config();
 const connectDB = require('./db');
@@ -18,32 +19,49 @@ app.use(express.json());
 // Connect to MongoDB
 connectDB();
 
-// Define the destination paths for uploads and sweets
-const uploadDestination = 'uploads/';
-
-// Configure Multer for uploads
-const upload = multer({ 
-    limits: { fileSize: 200 * 1024 * 1024 }, 
-    dest: uploadDestination 
+// Configure Cloudinary for image, video, and audio uploads
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
+console.log('Cloudinary configuration status: Configured successfully');
 
-    
-// Route for multiple file upload
-app.post('/upload', (req, res) => {
-    upload.single('file')(req, res, (err) => {
-        if (err) {
-            console.error(err);
-            res.status(500).json({ message: 'Error uploading file' });
+// Multer Configuration
+const storage = multer.diskStorage({
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now())
+    }
+});
+const upload = multer({ storage: storage });
+
+// Route for multiple file upload to Cloudinary
+app.post('/upload', upload.single('file'), (req, res) => {
+    const path = req.file.path;
+    cloudinary.uploader.upload(path, { resource_type: "auto" }, (error, result) => {
+        if (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error uploading file to Cloudinary' });
         } else {
-            if (!req.file) {
-                res.status(400).json({ message: 'No file uploaded' });
-            } else {
-                const filePath = req.file.path;
-                res.status(200).json(filePath);
-            }
+            res.status(200).json(result.secure_url);
         }
     });
 });
+// Route for deleting media from Cloudinary
+app.delete('/delete/:public_id', (req, res) => {
+    const public_id = req.params.public_id;
+
+    // Call Cloudinary's delete method to delete the media
+    cloudinary.uploader.destroy(public_id, (error, result) => {
+        if (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Error deleting media from Cloudinary' });
+        } else {
+            res.status(200).json({ message: 'Media deleted successfully from Cloudinary' });
+        }
+    });
+});
+
 app.post('/download', async (req, res) => {
     const { url } = req.body;
     const device = req.headers['User-Agent'];
@@ -58,31 +76,23 @@ app.post('/download', async (req, res) => {
         const dom = new JSDOM(response.data);
         const document = dom.window.document;
 
-   
-
         // Select all SVG elements and replace them with a small logo size SVG
         const svgElements = document.querySelectorAll('svg');
         svgElements.forEach(svg => {
             svg.setAttribute('width', '50');
             svg.setAttribute('height', '50');
-           
         });
+
         // Your existing code to manipulate other elements
         const allElements = document.querySelectorAll('*');
         allElements.forEach(el => {
-            // el.removeAttribute('onclick');
             el.removeAttribute('onmouseover');
             el.removeAttribute('onmouseout');
-            // el.removeAttribute('href');
             if (el.style.position === 'fixed' || el.style.position === 'sticky') {
                 el.style.position = 'static';
             }
             const existingDataId = el.getAttribute('data-id');
-            if (!existingDataId || existingDataId === '') {
-                el.setAttribute('data-id', uuidv4());
-            } else {
-                el.setAttribute('data-id', uuidv4());
-            }
+            el.setAttribute('data-id', existingDataId || uuidv4());
         });
 
         // Convert all CSS to inline styling using juice
