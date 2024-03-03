@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // Define Block schema
 const BlockSchema = new mongoose.Schema({
@@ -23,4 +23,4 @@ const RenarrationSchema = new mongoose.Schema({
 // Define Renarration model
 const Renarration = mongoose.model('Renarration', RenarrationSchema);
 
-module.exports = Renarration;
+export default Renarration;

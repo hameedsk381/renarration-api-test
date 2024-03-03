@@ -1,9 +1,9 @@
-const express = require('express');
-const router = express.Router();
-const Renarration = require('../models/Renarration'); // Assuming your Renarration model is defined in a separate file
+import express from 'express'; // Assuming your Renarration model is defined in a separate file
+import Renarration from '../models/Renarration.js'
+const RenarrationRouter = express.Router();
 
 // Create a renarration
-router.post('/create-renarration', async (req, res) => {
+RenarrationRouter.post('/create-renarration', async (req, res) => {
     try {
         const formData = req.body;
 
@@ -18,7 +18,7 @@ router.post('/create-renarration', async (req, res) => {
 });
 
 // Get all renarrations
-router.get('/renarrations', async (req, res) => {
+RenarrationRouter.get('/renarrations', async (req, res) => {
     try {
         const renarrations = await Renarration.find();
         res.json(renarrations);
@@ -29,8 +29,8 @@ router.get('/renarrations', async (req, res) => {
 });
 
 // Get a renarration by ID
-router.get('/renarrations/:id', async (req, res) => {
-    const id = req.params.id;
+RenarrationRouter.get('/renarrations/:id', async (req, res) => {
+    const { id } = req.params;
 
     try {
         const renarration = await Renarration.findById(id);
@@ -45,8 +45,8 @@ router.get('/renarrations/:id', async (req, res) => {
 });
 
 // Update a renarration by ID
-router.put('/renarrations/:id', async (req, res) => {
-    const id = req.params.id;
+RenarrationRouter.put('/renarrations/:id', async (req, res) => {
+    const { id } = req.params;
     const newData = req.body;
 
     try {
@@ -59,8 +59,8 @@ router.put('/renarrations/:id', async (req, res) => {
 });
 
 // Delete a renarration by ID
-router.delete('/renarrations/:id', async (req, res) => {
-    const id = req.params.id;
+RenarrationRouter.delete('/renarrations/:id', async (req, res) => {
+    const { id } = req.params;
 
     try {
         await Renarration.findByIdAndDelete(id);
@@ -70,8 +70,9 @@ router.delete('/renarrations/:id', async (req, res) => {
         res.status(500).send('Error deleting renarration');
     }
 });
-router.get('/verify-sharing/:sharingId', async (req, res) => {
-    const sharingId = req.params.sharingId;
+
+RenarrationRouter.get('/verify-sharing/:sharingId', async (req, res) => {
+    const { sharingId } = req.params;
 
     try {
         const renarration = await Renarration.findOne({ sharingId: parseInt(sharingId) });
@@ -85,4 +86,4 @@ router.get('/verify-sharing/:sharingId', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default RenarrationRouter;
