@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
 import juice from 'juice';
 import multer from 'multer';
-// import cloudinary from 'cloudinary/v2'; // Added Cloudinary
 import { create } from '@web3-storage/w3up-client';
 const app = express();
 import dotenv from 'dotenv';
@@ -14,35 +13,16 @@ import connectDB from './db.js'
 import RenarrationRouter from './routes/Renarration.js'
 
 const port = process.env.PORT || 4000
-const upload = multer(); // Initialize multer without any options
-app.use(cors()); // Allow CORS to all
-app.use(bodyParser.json()); // Support json encoded bodies
-app.use(bodyParser.urlencoded({ extended: true })); // Support encoded bodies
+const upload = multer();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
-// Connect to MongoDB
 connectDB();
 dotenv.config();
 
-// // Configure Cloudinary for image, video, and audio uploads
-// cloudinary.config({
-//     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//     api_key: process.env.CLOUDINARY_API_KEY,
-//     api_secret: process.env.CLOUDINARY_API_SECRET
-// });
-// console.log('Cloudinary configuration status: Configured successfully');
+let client;
 
-// // Multer Configuration
-// const storage = multer.diskStorage({
-//     filename: function (req, file, cb) {
-//         cb(null, file.fieldname + '-' + Date.now())
-//     }
-// });
-// const upload = multer({ storage: storage });
-
-// Route for multiple file upload to Cloudinary
-let client; // Declare the client variable outside the route handler
-
-// Setup Web3.Storage client
 (async () => {
   client = await create();
   const space = await client.createSpace('hameed_storage');
@@ -56,21 +36,17 @@ let client; // Declare the client variable outside the route handler
   });
 })();
 
-// Route for file upload
 app.post('/upload', upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).send('No file uploaded');
       }
       
-      // Access the uploaded file data and file name
-      const fileData = req.file.buffer; // Access the file buffer
-      const fileName = req.file.originalname; // Access the original file name
+      const fileData = req.file.buffer;
+      const fileName = req.file.originalname;
   
-      // Create a File object for the uploaded file
       const file = new File([fileData], fileName);
   
-      // Upload the file using the Web3.Storage client
       const fileCid = await client.uploadFile(file);
   
       console.log('Uploaded file CID:', fileCid);
@@ -80,11 +56,10 @@ app.post('/upload', upload.single('file'), async (req, res) => {
       res.status(500).send('Error uploading file');
     }
   });
-// Route for deleting media from Cloudinary
+
 app.delete('/delete/:public_id', (req, res) => {
     const public_id = req.params.public_id;
 
-    // Call Cloudinary's delete method to delete the media
     cloudinary.uploader.destroy(public_id, (error, result) => {
         if (error) {
             console.error(error);
@@ -109,14 +84,12 @@ app.post('/download', async (req, res) => {
         const dom = new JSDOM(response.data);
         const document = dom.window.document;
 
-        // Select all SVG elements and replace them with a small logo size SVG
         const svgElements = document.querySelectorAll('svg');
         svgElements.forEach(svg => {
             svg.setAttribute('width', '50');
             svg.setAttribute('height', '50');
         });
 
-        // Your existing code to manipulate other elements
         const allElements = document.querySelectorAll('*');
         allElements.forEach(el => {
             el.removeAttribute('onmouseover');
@@ -128,7 +101,6 @@ app.post('/download', async (req, res) => {
             el.setAttribute('data-id', existingDataId || uuidv4());
         });
 
-        // Convert all CSS to inline styling using juice
         const htmlContent = juice(dom.serialize());
 
         res.header('Content-Type', 'text/html');
