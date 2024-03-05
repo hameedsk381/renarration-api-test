@@ -1,10 +1,7 @@
-import express from 'express'; // Assuming your Renarration model is defined in a separate file
-import { Renarration, Block } from '../models/Renarration.js'
-const RenarrationRouter = express.Router();
+import { Renarration, Block } from '../models/Renarration.js';
 import { v4 as uuidv4 } from 'uuid';
 
-// Create a renarration
-RenarrationRouter.post('/create-renarration', async (req, res) => {
+export const createRenarration = async (req, res) => {
     try {
         const formData = req.body;
       // Create a new renarration document
@@ -26,9 +23,9 @@ RenarrationRouter.post('/create-renarration', async (req, res) => {
         console.error('Error creating renarration:', error);
         res.status(500).send('Error creating renarration');
     }
-});
-// Get all renarrations sorted by latest
-RenarrationRouter.get('/renarrations', async (req, res) => {
+};
+
+export const getAllRenarrations = async (req, res) => {
     try {
         const renarrations = await Renarration.find().sort({ _id: -1 }).select('-sharingId -blocks'); 
         res.json(renarrations);
@@ -36,9 +33,9 @@ RenarrationRouter.get('/renarrations', async (req, res) => {
         console.error('Error fetching renarrations:', error);
         res.status(500).send('Error fetching renarrations');
     }
-});
+};
 
-RenarrationRouter.get('/renarrations/:id', async (req, res) => {
+export const getRenarrationById = async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -60,10 +57,9 @@ RenarrationRouter.get('/renarrations/:id', async (req, res) => {
         console.error('Error fetching renarration:', error);
         res.status(500).send('Error fetching renarration');
     }
-});
+};
 
-// Update a renarration by ID
-RenarrationRouter.put('/renarrations/:id', async (req, res) => {
+export const updateRenarrationById = async (req, res) => {
     const { id } = req.params;
     const newData = req.body;
 
@@ -90,10 +86,9 @@ RenarrationRouter.put('/renarrations/:id', async (req, res) => {
         console.error('Error updating renarration:', error);
         res.status(500).send('Error updating renarration');
     }
-});
+};
 
-// Delete a renarration by ID
-RenarrationRouter.delete('/renarrations/:id', async (req, res) => {
+export const deleteRenarrationById = async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -103,9 +98,9 @@ RenarrationRouter.delete('/renarrations/:id', async (req, res) => {
         console.error('Error deleting renarration:', error);
         res.status(500).send('Error deleting renarration');
     }
-});
+};
 
-RenarrationRouter.post('/verify-sharing', async (req, res) => {
+export const verifySharing = async (req, res) => {
     const { sharingId } = req.body;
 
     try {
@@ -118,6 +113,4 @@ RenarrationRouter.post('/verify-sharing', async (req, res) => {
         console.error('Error fetching renarration:', error);
         res.status(500).send('Error fetching renarration');
     }
-});
-
-export default RenarrationRouter;
+};
