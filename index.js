@@ -1,6 +1,5 @@
 import express from 'express';
 import axios from 'axios';
-import { JSDOM } from 'jsdom';
 import bodyParser from 'body-parser';
 import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
@@ -11,6 +10,8 @@ const app = express();
 import dotenv from 'dotenv';
 import connectDB from './db.js'
 import RenarrationRouter from './routes/Renarration.js'
+import cheerio from 'cheerio';
+
 
 const port = process.env.PORT || 4000
 const upload = multer();
@@ -72,46 +73,43 @@ app.delete('/delete/:public_id', (req, res) => {
 
 app.post('/download', async (req, res) => {
     const { url } = req.body;
-    const device = req.headers['User-Agent'];
 
     try {
-        const response = await axios.get(url, {
-            headers: {
-                'User-Agent': device
+        const response = await axios.get(url);
+
+        // Load the HTML content into cheerio
+        const $ = cheerio.load(response.data);
+
+        // Remove favicon elements
+        $('link[rel="icon"], link[rel="shortcut icon"]').remove();
+
+        // Modify SVG elements
+        $('svg').attr({
+          'width': '50',
+          'height': '50'
+        });
+
+        // Remove event handlers and adjust styles
+        $('*').each((index, element) => {
+            const el = $(element);
+            el.removeAttr('onmouseover').removeAttr('onmouseout');
+            const position = el.css('position');
+            if (position === 'fixed' || position === 'sticky') {
+                el.css('position', 'static');
             }
-        });
-        
-        const dom = new JSDOM(response.data);
-        const document = dom.window.document;
-
-        const svgElements = document.querySelectorAll('svg');
-        svgElements.forEach(svg => {
-            svg.setAttribute('width', '50');
-            svg.setAttribute('height', '50');
+            const existingDataId = el.attr('data-id');
+            el.attr('data-id', existingDataId || uuidv4());
         });
 
-        const allElements = document.querySelectorAll('*');
-        allElements.forEach(el => {
-            el.removeAttribute('onmouseover');
-            el.removeAttribute('onmouseout');
-            if (el.style.position === 'fixed' || el.style.position === 'sticky') {
-                el.style.position = 'static';
-            }
-            const existingDataId = el.getAttribute('data-id');
-            el.setAttribute('data-id', existingDataId || uuidv4());
-        });
+        // Inline CSS using juice and the modified HTML
+        const htmlContent = juice($.html());
 
-        const htmlContent = juice(dom.serialize());
-
-        res.header('Content-Type', 'text/html');
-        res.send(htmlContent);
-
+        res.header('Content-Type', 'text/html').send(htmlContent);
     } catch (error) {
-        console.error('This page cannot be renarrated at the moment:', error);
+        console.error(`This page cannot be renarrated at the moment: ${error}`);
         res.status(500).send('This page cannot be renarrated at the moment');
     }
 });
-
 
 app.use('/sweets', RenarrationRouter);
 
