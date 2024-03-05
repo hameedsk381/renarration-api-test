@@ -1,0 +1,84 @@
+## Project Documentation
+
+### Description
+This project is a server-side application built using Express.js. It provides APIs for uploading, deleting, and downloading media files, as well as managing renarrations. The project integrates with web3.storage for file storage and retrieval.
+
+### Features
+- **File Upload**: Allows users to upload files, which are then stored on web3.storage.
+- **File Deletion**: Supports deleting media files from Cloudinary.
+- **File Download**: Downloads a webpage, modifies its content using Cheerio, and inlines CSS styles using Juice.
+- **Renarrations**: Manages renarrations, including creation, retrieval, updating, and deletion.
+
+### APIs
+1. **POST /upload**: Uploads a file to web3.storage.
+2. **DELETE /delete/:public_id**: Deletes media from Cloudinary.
+3. **POST /download**: Downloads a webpage, modifies its content, and inlines CSS styles.
+4. **GET /sweets**: Handles renarration-related operations.
+
+### Dependencies
+- Express.js
+- Axios
+- Body-parser
+- Multer
+- web3.storage
+- dotenv
+- MongoDB (assumed from connectDB)
+- Cheerio
+- Cloudinary (assumed from delete endpoint)
+
+### Configuration
+- Port: Default is 4000, can be overridden by setting the PORT environment variable.
+- Cloudinary and web3.storage credentials are assumed to be set up externally.
+
+### Usage
+1. Start the server by running the script.
+2. Access the APIs using appropriate HTTP methods and endpoints.
+
+### Additional Notes
+- The project initializes web3.storage and sets up a space for file storage during startup.
+- Cheerio is used to manipulate HTML content during the download process.
+
+### Renarration Routes
+
+#### File: Renarration.js
+
+This file contains the following routes for managing renarrations:
+
+1. **POST /create-renarration**
+   - Description: Creates a new renarration document with associated blocks.
+   - Steps:
+     - Creates block documents for each block in the renarration.
+     - Updates the renarration with block references.
+     - Generates a sharingId for the renarration.
+   - Response: Returns a success message and the sharingId upon successful creation.
+
+2. **GET /renarrations**
+   - Description: Retrieves all renarrations sorted by the latest creation date.
+   - Response: Returns an array of renarrations excluding sharingId and blocks.
+
+3. **GET /renarrations/:id**
+   - Description: Retrieves a specific renarration by ID.
+   - Steps:
+     - Excludes the sharingId field from the result.
+     - Populates the blocks associated with the renarration.
+   - Response: Returns the renarration object without sharingId.
+
+4. **PUT /renarrations/:id**
+   - Description: Updates a renarration by ID.
+   - Steps:
+     - Updates existing blocks or creates new blocks based on the provided data.
+     - Updates the renarration with the modified block references.
+   - Response: Returns a success message upon updating the renarration.
+
+5. **DELETE /renarrations/:id**
+   - Description: Deletes a renarration by ID.
+   - Response: Returns a success message upon successful deletion.
+
+6. **POST /verify-sharing**
+   - Description: Verifies a renarration using a sharingId.
+   - Steps:
+     - Finds a renarration by the provided sharingId.
+     - Populates the associated blocks.
+   - Response: Returns the renarration object if found, or an error message if not found.
+
+These routes handle the creation, retrieval, updating, and deletion of renarrations within the application.
