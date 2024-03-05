@@ -27,10 +27,10 @@ RenarrationRouter.post('/create-renarration', async (req, res) => {
         res.status(500).send('Error creating renarration');
     }
 });
-// Get all renarrations
+// Get all renarrations sorted by latest
 RenarrationRouter.get('/renarrations', async (req, res) => {
     try {
-        const renarrations = await Renarration.find().select('-sharingId -blocks'); 
+        const renarrations = await Renarration.find().sort({ _id: -1 }).select('-sharingId -blocks'); 
         res.json(renarrations);
     } catch (error) {
         console.error('Error fetching renarrations:', error);
