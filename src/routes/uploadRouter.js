@@ -1,10 +1,9 @@
-import express from 'express';
+// src/routes/uploadRoutes.js
 import { uploadFile } from '../controllers/uploadController.js';
-import upload from '../middleware/uploadMiddleware.js';
 
-const uploadRouter = express.Router();
+export default async function (fastify, options) {
+  // Register the fastify-multipart plugin to handle multipart/form-data
 
-// Single file upload route
-uploadRouter.post('/', upload.single('file'), uploadFile);
 
-export default uploadRouter;
+  fastify.post('/', uploadFile);
+}

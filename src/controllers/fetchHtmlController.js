@@ -3,8 +3,8 @@ import cheerio from 'cheerio';
 import juice from 'juice';
 import { v4 as uuidv4 } from 'uuid';
 
-export const downloadContent = async (req, res) => {
-    const { url } = req.body;
+export const downloadContent = async (request, reply) => {
+    const { url } = request.body;
 
     try {
         const response = await axios.get(url);
@@ -23,9 +23,9 @@ export const downloadContent = async (req, res) => {
         });
 
         const htmlContent = juice($.html());
-        res.header('Content-Type', 'text/html').send(htmlContent);
+        reply.header('Content-Type', 'text/html').send(htmlContent);
     } catch (error) {
         console.error(`This page cannot be renarrated at the moment: ${error}`);
-        res.status(500).send('This page cannot be renarrated at the moment');
+        reply.status(500).send('This page cannot be renarrated at the moment');
     }
 };

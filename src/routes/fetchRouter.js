@@ -1,9 +1,7 @@
-import express from 'express';
+// src/routes/fetchRoutes.js
 import { downloadContent } from '../controllers/fetchHtmlController.js';
 
-
-const fetchRouter = express.Router();
-
-fetchRouter.post('/', downloadContent);
-
-export default fetchRouter;
+export default function (fastify, options, done) {
+  fastify.post('/', downloadContent);
+  done();
+}

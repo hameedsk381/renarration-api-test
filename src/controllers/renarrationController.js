@@ -1,45 +1,45 @@
 import { Renarration, Block } from '../models/Renarration.js';
 import { v4 as uuidv4 } from 'uuid';
 
-export const createRenarration = async (req, res) => {
+export const createRenarration = async (request, reply) => {
     try {
-        const formData = req.body;
-      // Create a new renarration document
-      const blocks = [];
-      const sharingId = uuidv4();
-      // Create a new block document for each block in the renarration
-      for (const block of formData.blocks) {
-          const newBlock = await Block.create({ ...block });
-          blocks.push(newBlock._id); // Add the reference to the block in the blocks array
-      }
-      formData.blocks = blocks; // Update formData with block references
-      await Renarration.create({ ...formData, sharingId });
+        const formData = request.body;
+        const blocks = [];
+        const sharingId = uuidv4();
 
-      res.status(201).json({
-          message: "Renarration created successfully",
-          sharingId
-      });
+        for (const block of formData.blocks) {
+            const newBlock = await Block.create({ ...block });
+            blocks.push(newBlock._id);
+        }
+
+        formData.blocks = blocks;
+        await Renarration.create({ ...formData, sharingId });
+
+        // Status code and JSON response are combined in Fastify
+        reply.code(201).send({
+            message: "Renarration created successfully",
+            sharingId
+        });
     } catch (error) {
         console.error('Error creating renarration:', error);
-        res.status(500).send('Error creating renarration');
+        reply.code(500).send('Error creating renarration');
     }
 };
 
-export const getAllRenarrations = async (req, res) => {
+export const getAllRenarrations = async (request, reply) => {
     try {
-        const renarrations = await Renarration.find().sort({ _id: -1 }).select('-sharingId -blocks'); 
-        res.json(renarrations);
+        const renarrations = await Renarration.find().sort({ _id: -1 }).select('-sharingId -blocks');
+        reply.send(renarrations); // Simplified JSON response
     } catch (error) {
         console.error('Error fetching renarrations:', error);
-        res.status(500).send('Error fetching renarrations');
+        reply.code(500).send('Error fetching renarrations');
     }
 };
 
-export const getRenarrationById = async (req, res) => {
-    const { id } = req.params;
+export const getRenarrationById = async (request, reply) => {
+    const { id } = request.params;
 
     try {
-        // Using .select() to exclude the 'sharingId' field from the result
         const renarration = await Renarration.findById(id)
             .select('-sharingId')
             .populate({
@@ -48,20 +48,20 @@ export const getRenarrationById = async (req, res) => {
             });
 
         if (!renarration) {
-            return res.status(404).send('Renarration not found');
+            reply.code(404).send('Renarration not found');
+            return; // Make sure to return after sending a response
         }
 
-        // Return the renarration object without the sharingId directly
-        res.json(renarration);
+        reply.send(renarration);
     } catch (error) {
         console.error('Error fetching renarration:', error);
-        res.status(500).send('Error fetching renarration');
+        reply.code(500).send('Error fetching renarration');
     }
 };
 
-export const updateRenarrationById = async (req, res) => {
-    const { id } = req.params;
-    const newData = req.body;
+export const updateRenarrationById = async (request, reply) => {
+    const { id } = request.params;
+    const newData = request.body;
 
     try {
         const newblocks = [];
@@ -81,36 +81,41 @@ export const updateRenarrationById = async (req, res) => {
 
         // Then update the renarration
         await Renarration.findByIdAndUpdate(id, newData, { new: true });
-        res.json({ message: "Renarration updated successfully" });
+        reply.send({ message: "Renarration updated successfully" });
     } catch (error) {
         console.error('Error updating renarration:', error);
-        res.status(500).send('Error updating renarration');
+        reply.code(500).send('Error updating renarration');
     }
 };
 
-export const deleteRenarrationById = async (req, res) => {
-    const { id } = req.params;
+export const deleteRenarrationById = async (request, reply) => {
+    const { id } = request.params;
 
     try {
-        await Renarration.findByIdAndDelete(id);
-        res.json({ message: 'Renarration deleted successfully' });
+        const deletedRenarration = await Renarration.findByIdAndDelete(id);
+        if (!deletedRenarration) {
+            reply.code(404).send('Renarration not found');
+            return;
+        }
+        reply.send({ message: 'Renarration deleted successfully' });
     } catch (error) {
         console.error('Error deleting renarration:', error);
-        res.status(500).send('Error deleting renarration');
+        reply.code(500).send('Error deleting renarration');
     }
 };
 
-export const verifySharing = async (req, res) => {
-    const { sharingId } = req.body;
+export const verifySharing = async (request, reply) => {
+    const { sharingId } = request.body;
 
     try {
         const renarration = await Renarration.findOne({ sharingId }).populate('blocks');
         if (!renarration) {
-            return res.status(404).send('Renarration with the provided sharing ID not found');
+            reply.code(404).send('Renarration with the provided sharing ID not found');
+            return;
         }
-        res.status(200).json(renarration);
+        reply.send(renarration);
     } catch (error) {
         console.error('Error fetching renarration:', error);
-        res.status(500).send('Error fetching renarration');
+        reply.code(500).send('Error fetching renarration');
     }
 };

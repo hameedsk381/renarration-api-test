@@ -1,4 +1,4 @@
-import express from 'express';
+// src/routes/renarrationRoutes.js
 import {
   createRenarration,
   getAllRenarrations,
@@ -8,13 +8,14 @@ import {
   verifySharing
 } from '../controllers/renarrationController.js';
 
-const RenarrationRouter = express.Router();
+export default function (fastify, options, done) {
+  // Define child routes
+  fastify.post('/create-renarration', createRenarration);
+  fastify.get('/renarrations', getAllRenarrations);
+  fastify.get('/renarrations/:id', getRenarrationById);
+  fastify.put('/renarrations/:id', updateRenarrationById);
+  fastify.delete('/renarrations/:id', deleteRenarrationById);
+  fastify.post('/verify-sharing', verifySharing);
 
-RenarrationRouter.post('/create-renarration', createRenarration);
-RenarrationRouter.get('/renarrations', getAllRenarrations);
-RenarrationRouter.get('/renarrations/:id', getRenarrationById);
-RenarrationRouter.put('/renarrations/:id', updateRenarrationById);
-RenarrationRouter.delete('/renarrations/:id', deleteRenarrationById);
-RenarrationRouter.post('/verify-sharing', verifySharing);
-
-export default RenarrationRouter;
+  done();
+}
